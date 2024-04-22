@@ -1,10 +1,10 @@
 import express from 'express';
 import dotenv from 'dotenv';
 
-import userRouter from './routes/user.js';
+import userRouter from './routes/user.middleware.js';
 
-import { logRequest } from './middlewares/logging.js';
-import { handleInternalErrors } from './middlewares/errors.js';
+import { logRequest } from './middlewares/logging.middleware.js';
+import { handleInternalErrors } from './middlewares/errors.middleware.js';
 
 dotenv.config();
 
