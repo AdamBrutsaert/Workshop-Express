@@ -2,6 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 
 import userRouter from './routes/user.js';
+
+import { logRequest } from './middlewares/logging.js';
 import { handleInternalErrors } from './middlewares/errors.js';
 
 dotenv.config();
@@ -10,6 +12,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json())
+    .use(logRequest)
     .use("/user", userRouter)
     .use(handleInternalErrors);
 
