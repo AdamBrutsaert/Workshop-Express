@@ -1,3 +1,5 @@
+import db from "../configs/db.config";
+
 export type User = {
     id: number;
     name: string;
@@ -7,37 +9,48 @@ export type User = {
 
 export type UserArgs = Omit<User, 'id'>;
 
-const users: User[] = [
-    { id: 1, name: "John Doe", description: "Im a good boi", age: 69 },
-    { id: 2, name: "Jane Doe", description: "HANN", age: 42 },
-    { id: 3, name: "Bob", description: "I'm a teapot", age: 418 },
-];
-
-let id = 4;
-
-export function getUser(id: number): User | undefined {
-    return users.find((user) => user.id === id);
+export async function getUser(id: number): Promise<User> {
+    return new Promise((resolve, reject) => {
+        db.get<User>(`SELECT * FROM users WHERE id = ?`, [id], (err, user) => {
+            if (err) return reject(err.message);
+            return resolve(user);
+        })
+    })
 }
 
-export function createUser(args: UserArgs): User {
-    const user: User = { id: id++, ...args};
-    users.push(user);
-    return user;
+export async function createUser(args: UserArgs): Promise<User> {
+    return new Promise((resolve, reject) => {
+        const sql = `INSERT INTO users (name, description, age) VALUES (?, ?, ?)`;
+        const params = [args.name, args.description, args.age];
+        db.run(sql, params, async function (err) {
+            if (err) return reject(err.message);
+            getUser(this.lastID)
+                .then((user) => resolve(user))
+                .catch((err) => reject(err));
+        });
+    });
 }
 
-export function updateUser(id: number, args: Partial<UserArgs>): User | undefined {
-    const user = getUser(id);
-    if (!user) return undefined;
-
-    if (args.name !== undefined) user.name = args.name;
-    if (args.description !== undefined) user.description = args.description;
-    if (args.age !== undefined) user.age = args.age;
-    return user;
+export async function updateUser(id: number, args: Partial<UserArgs>): Promise<User> {
+    return new Promise((resolve, reject) => {
+        const sql = `UPDATE users SET name = COALESCE(?, name), description = COALESCE(?, description), age = COALESCE(?, age) WHERE id=?`;
+        const params = [args.name ?? null, args.description ?? null, args.age ?? null, id];
+        db.run(sql, params, async function (err) {
+            if (err) return reject(err.message);
+            getUser(this.lastID)
+                .then((user) => resolve(user))
+                .catch((err) => reject(err));
+        });
+    });
 }
 
-export function deleteUser(id: number): boolean {
-    const index = users.findIndex((user) => user.id === id);
-    if (index === -1) return false;
-    users.splice(index, 1);
-    return true;
+export function deleteUser(id: number): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        const sql = `DELETE FROM users WHERE id=?`;
+        const params = [id];
+        db.run(sql, params, async function (err) {
+            if (err) return reject(err.message);
+            return resolve(true);
+        });
+    });
 }
