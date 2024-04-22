@@ -7,15 +7,23 @@ const users: { id: number, name: string }[] = [
 
 const router = Router();
 
-router.get("/user/:id", (req, res) => {
-    res.json({ id: req.params.id });
+router.get("/marvin", (req, res) => {
+    res.status(403).send();
 });
 
-router.post("/user", (req, res) => {
+router.get("/corrupted", (req, res) => {
+    throw new Error();
+});
+
+router.post("/", (req, res) => {
     res.json(req.body);
 })
 
-router.put("/user/:id", (req, res) => {
+router.get("/:id", (req, res) => {
+    res.json({ id: req.params.id });
+});
+
+router.put("/:id", (req, res) => {
     const user = users.find(user => user.id === parseInt(req.params.id));
 
     if (!user) {
